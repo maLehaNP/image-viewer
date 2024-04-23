@@ -32,8 +32,12 @@ class MyWidget(QWidget, Ui_Form):
             self.im_list = os.listdir()
             self.setpix(self.im_list[self.list_i])
             print(self.im_list)
+        if self.sender() == self.prev_btn:
+            self.list_i -= 1
+            self.setpix(self.im_list[self.list_i])
         if self.sender() == self.next_btn:
-            # self.setpix(self.im_list.index(self.image.text()))
+            self.list_i += 1
+            self.setpix(self.im_list[self.list_i])
 
     def setpix(self, filename):
         self.pixmap = QPixmap(filename)
