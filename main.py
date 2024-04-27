@@ -1,9 +1,8 @@
 import sys
-import os, os.path, shutil
+import os
 
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QApplication, QWidget, QMainWindow, QDialog
-from ui_widget import Ui_Form
+from PyQt6.QtWidgets import QApplication, QMainWindow, QDialog
 from ui_dialog import Ui_Dialog
 from ui_Main import Ui_MainWindow
 
@@ -52,8 +51,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def set_folder(self, path):
         os.chdir(path)
+        print(os.getcwd())
         self.link.setText(os.getcwd())
         self.im_list = os.listdir()  # лист со всеми названиями изображений
+        print(self.im_list)
         self.list_l = len(self.im_list) - 1
         self.btn_disable()
         self.setpix(self.im_list[self.list_i])
@@ -85,13 +86,17 @@ class Dialog(QDialog, Ui_Dialog):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.buttonBox.clicked.connect(self.buttons)
+        self.ok.clicked.connect(self.buttons)
+        self.cancel.clicked.connect(self.buttons)
+
     def buttons(self):
-        if self.buttonBox.sender() == self.buttonBox.standardButton().Yes:
-            path = self.line.text()
-            MainWindow.set_folder(path)
+        if self.sender() == self.ok:
             self.close()
-        else:
+            path = self.line.text()
+            main = MainWindow()
+            main.set_folder(path=path)
+
+        if self.sender() == self.cancel:
             self.close()
 
 
