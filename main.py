@@ -1,11 +1,15 @@
 import sys
 import os
+import time
 
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QApplication, QMainWindow, QDialog
+from PyQt6.QtWidgets import QApplication, QMainWindow, QDialog, QInputDialog
 from ui_dialog import Ui_Dialog
 from ui_Main import Ui_MainWindow
+import threading
 
+# event = threading.Event()
+# path = ''
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -30,8 +34,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def buttons(self):
         if self.sender() == self.folder_btn:
-            self.dialog = Dialog()
-            self.dialog.show()
+            # self.dialog = Dialog()
+            # self.dialog.show()
+            self.path, ok = QInputDialog.getText(self, 'Выбор папки', 'Введите адрес папки: ')
+            self.set_folder()
         if self.sender() == self.prev_btn:
             self.list_i -= 1
             self.setpix(self.im_list[self.list_i])
@@ -49,15 +55,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.setpix(self.im_list[self.list_l])
             self.btn_disable()
 
-    def set_folder(self, path):
-        os.chdir(path)
-        print(os.getcwd())
+    def set_folder(self):
+        os.chdir(self.path)
         self.link.setText(os.getcwd())
         self.im_list = os.listdir()  # лист со всеми названиями изображений
         print(self.im_list)
         self.list_l = len(self.im_list) - 1
         self.btn_disable()
         self.setpix(self.im_list[self.list_i])
+        self.show()
 
     def btn_disable(self):
         if self.list_i == 0:
@@ -73,8 +79,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.next_btn.setDisabled(0)
             self.last_btn.setDisabled(0)
 
-    # ставит изображение по навванию
+    # ставит изображение по названию
     def setpix(self, filename):
+        print(f"Изображение {filename} поставлено")
         self.pixmap = QPixmap(filename)
         # self.pixmap.scaled(1260, 601, transformMode=)
         # self.pixmap.transformed(transform=)
@@ -82,22 +89,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.name.setText(filename)
 
 
-class Dialog(QDialog, Ui_Dialog):
-    def __init__(self):
-        super().__init__()
-        self.setupUi(self)
-        self.ok.clicked.connect(self.buttons)
-        self.cancel.clicked.connect(self.buttons)
-
-    def buttons(self):
-        if self.sender() == self.ok:
-            self.close()
-            path = self.line.text()
-            main = MainWindow()
-            main.set_folder(path=path)
-
-        if self.sender() == self.cancel:
-            self.close()
+# class Dialog(QDialog, Ui_Dialog):
+#     def __init__(self):
+#         super().__init__()
+#         self.setupUi(self)
+#
+#
+#         self.ok.clicked.connect(self.buttons)
+#         self.cancel.clicked.connect(self.buttons)
+#
+#     def buttons(self):
+#         if self.sender() == self.ok:
+#             path = self.line.text()
+#             self.close()
+#
+#         if self.sender() == self.cancel:
+#             self.close()
 
 
 if __name__ == '__main__':
