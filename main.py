@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QTransform
 from PyQt6.QtWidgets import QApplication, QMainWindow, QInputDialog
 from ui_Main import Ui_MainWindow
@@ -14,7 +15,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.im_list = []
         self.list_i = 0
         self.list_l = 0
-        self.turn_angle = 90
         self.btn_disable()
 
         # кнопки
@@ -27,27 +27,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.turn_btn.clicked.connect(self.buttons)
         self.del_bnt.clicked.connect(self.buttons)
 
+    # функция кнопок
     def buttons(self):
         if self.sender() == self.folder_btn:
-            self.path, ok = QInputDialog.getText(self, 'Выбор папки', 'Введите адрес папки: ')
-            self.set_folder()
+            path, ok = QInputDialog.getText(self, 'Выбор папки', 'Введите адрес папки: ')
+            self.set_folder(path)
         if self.sender() == self.prev_btn:
             self.list_i -= 1
-            self.setpix(self.im_list[self.list_i])
-            self.btn_disable()
+            self.change_image()
         if self.sender() == self.next_btn:
             self.list_i += 1
-            self.setpix(self.im_list[self.list_i])
-            self.btn_disable()
+            self.change_image()
         if self.sender() == self.first_btn:
             self.list_i = 0
-            self.setpix(self.im_list[0])
-            self.btn_disable()
+            self.change_image()
         if self.sender() == self.last_btn:
             self.list_i = self.list_l
-            self.setpix(self.im_list[self.list_l])
-            self.btn_disable()
-        if self.sender() == self.slide_show_btn:
+            self.change_image()
+        if self.sender() == self.slide_show_btn:  # слайд-шоу
             while self.list_i != self.list_l + 1:
                 self.setpix(self.im_list[self.list_i])
                 self.btn_disable()
@@ -55,16 +52,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 time.sleep(5)
         if self.sender() == self.turn_btn:
             self.turnpix()
+        if self.sender() == self.del_bnt:  # удаление
+            del_filename = self.filename
+            if self.list_i != 0:
+                self.prev_btn.click()
+            else:
+                self.next_btn.click()
+            os.remove(del_filename)
+            self.im_list = os.listdir()
+            self.list_l = len(self.im_list) - 1
 
-
-    def set_folder(self):
-        os.chdir(self.path)
+    # установить папку и 1-ое изображение
+    def set_folder(self, path):
+        os.chdir(path)
         self.link.setText(os.getcwd())
         self.im_list = os.listdir()  # лист со всеми названиями изображений
         self.list_l = len(self.im_list) - 1
         self.btn_disable()
         self.setpix(self.im_list[self.list_i])
 
+    # сменить изображение на list_i
+    def change_image(self):
+        self.safepix()
+        self.setpix(self.im_list[self.list_i])
+        self.btn_disable()
+
+    # отключение кнопок
     def btn_disable(self):
         if self.list_i == 0:
             self.prev_btn.setDisabled(1)
@@ -79,23 +92,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.next_btn.setDisabled(0)
             self.last_btn.setDisabled(0)
-            self.slide_show_btn.setDisabled(1)
+            self.slide_show_btn.setDisabled(0)
 
     # ставит изображение по названию
     def setpix(self, filename):
-        print(f"Изображение {filename} поставлено")
-        pixmap = QPixmap(filename)
-        self.image.setPixmap(pixmap)
+        self.filename = filename
+        self.pixmap = QPixmap(filename)
+        self.image.setPixmap(self.pixmap.scaled(self.pixmap.size(), Qt.AspectRatioMode.IgnoreAspectRatio))
         self.name.setText(filename)
 
+    # поворот изображения
     def turnpix(self):
-        pixmap = QPixmap(self.im_list[self.list_i])
-        transform90 = QTransform().rotate(self.turn_angle)
-        self.turn_angle += 90
-        rotated = pixmap.transformed(transform90)
-        pixmap = QPixmap(rotated)
-        self.image.setPixmap(pixmap)
+        transform90 = QTransform().rotate(90)
+        # mode = Qt.TransformationMode.SmoothTransformation
+        rotated = self.pixmap.transformed(transform90)
+        self.pixmap = QPixmap(rotated)
+        self.image.setPixmap(self.pixmap)
 
+    # сохранение изображения
+    def safepix(self):
+        self.pixmap.save(self.filename)
 
 
 if __name__ == '__main__':
