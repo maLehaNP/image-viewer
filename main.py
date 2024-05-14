@@ -49,7 +49,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.setpix(self.im_list[self.list_i])
                 self.btn_disable()
                 self.list_i += 1
-                time.sleep(5)
+                time.sleep(5)  # из-за этого зависает, нужно завести таймер как переменную...
         if self.sender() == self.turn_btn:
             self.turnpix()
         if self.sender() == self.del_bnt:  # удаление
